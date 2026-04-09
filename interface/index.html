@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>IOT 2026 MVP</title>
+    <link rel="stylesheet" href="assets/css/app.css" />
+  </head>
+  <body class="auth-layout">
+    <div class="auth-card">
+      <section class="auth-copy">
+        <div class="eyebrow">MVP Charging Portal</div>
+        <h1>Redirecting to your workspace.</h1>
+        <p>
+          This shell routes each signed-in user to the correct dashboard and keeps the project
+          flow simple when you open the static frontend directly.
+        </p>
+      </section>
+      <section class="auth-form">
+        <h2>Hang tight</h2>
+        <p class="message">Checking local session and sending you to the right page.</p>
+        <div class="hero-actions">
+          <a class="button" href="login.html">Go to login</a>
+          <a class="ghost-button" href="register.html">Create account</a>
+        </div>
+      </section>
+    </div>
+    <script src="assets/js/auth.js"></script>
+    <script>
+      if (window.localStorage.getItem("accessToken")) {
+        window.AppAuth.redirectByRole();
+      }
+    </script>
+  </body>
+</html>

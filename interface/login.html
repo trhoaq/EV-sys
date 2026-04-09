@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Login | IOT 2026 MVP</title>
+    <link rel="stylesheet" href="assets/css/app.css" />
+  </head>
+  <body class="auth-layout">
+    <div class="auth-card">
+      <section class="auth-copy">
+        <div class="eyebrow">Realtime Charging</div>
+        <h1>Monitor live charging data without a frontend framework.</h1>
+        <p>
+          Use this screen to sign in, listen to realtime MQTT-backed updates, and open the user or
+          admin dashboard that matches your role.
+        </p>
+      </section>
+      <section class="auth-form">
+        <h2>Sign in</h2>
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" placeholder="admin@example.com" />
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" placeholder="Enter password" />
+        <p id="message" class="message"></p>
+        <div class="form-actions">
+          <button id="loginButton" type="button">Login</button>
+          <a class="ghost-button" href="register.html">Create account</a>
+        </div>
+      </section>
+    </div>
+    <script src="assets/js/api.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script>
+      const emailInput = document.getElementById("email");
+      const passwordInput = document.getElementById("password");
+      const message = document.getElementById("message");
+
+      document.getElementById("loginButton").addEventListener("click", async function () {
+        try {
+          const payload = await window.AppApi.post("/api/auth/login", {
+            email: emailInput.value.trim(),
+            password: passwordInput.value,
+          });
+          window.AppAuth.saveSession(payload);
+          message.textContent = "Login successful. Redirecting...";
+          message.className = "message success";
+          window.AppAuth.redirectByRole();
+        } catch (error) {
+          message.textContent = error.message;
+          message.className = "message error";
+        }
+      });
+    </script>
+  </body>
+</html>

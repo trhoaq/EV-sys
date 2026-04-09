@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin Dashboard | IOT 2026 MVP</title>
+    <link rel="stylesheet" href="assets/css/app.css" />
+  </head>
+  <body>
+    <main class="page-shell">
+      <section class="hero-card">
+        <div class="hero-top">
+          <div>
+            <div class="eyebrow">Admin Console</div>
+            <h1>Operate devices, thresholds, and assignments from one surface.</h1>
+            <p id="adminWelcomeMessage">Loading administrator profile...</p>
+          </div>
+          <div class="hero-actions">
+            <button id="adminRefreshButton" type="button">Refresh</button>
+            <button id="adminLogoutButton" class="ghost-button" type="button">Logout</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="dashboard-grid">
+        <div class="span-12 panel">
+          <h2>Overview</h2>
+          <div id="overviewMetrics" class="metric-grid"></div>
+        </div>
+
+        <div class="span-6 panel">
+          <h2>Global Thresholds</h2>
+          <label for="minCurrent">Minimum current (mA)</label>
+          <input id="minCurrent" type="number" />
+          <label for="detectionCurrent">Charging detection current (mA)</label>
+          <input id="detectionCurrent" type="number" />
+          <label for="maxCurrent">Maximum current (mA)</label>
+          <input id="maxCurrent" type="number" />
+          <p id="settingsMessage" class="message"></p>
+          <div class="form-actions">
+            <button id="saveSettingsButton" type="button">Save settings</button>
+          </div>
+        </div>
+
+        <div class="span-6 panel">
+          <h2>Assign plate to user</h2>
+          <label for="assignmentUser">User</label>
+          <select id="assignmentUser"></select>
+          <label for="assignmentPlate">License plate</label>
+          <input id="assignmentPlate" type="text" placeholder="59A-12345" />
+          <label for="assignmentDevice">Device code (optional)</label>
+          <input id="assignmentDevice" type="text" placeholder="charger-01" />
+          <label for="assignmentDisplayName">Display name (optional)</label>
+          <input id="assignmentDisplayName" type="text" placeholder="Main vehicle" />
+          <p id="assignmentMessage" class="message"></p>
+          <div class="form-actions">
+            <button id="assignVehicleButton" type="button">Assign vehicle</button>
+          </div>
+        </div>
+
+        <div class="span-12 table-card">
+          <div class="row" style="justify-content: space-between; align-items: center">
+            <div>
+              <h2>Devices</h2>
+              <p class="subtle">See both stations whether someone is charging or the station is idle.</p>
+            </div>
+            <p id="adminSocketStatus" class="status-pill offline">Socket disconnected</p>
+          </div>
+          <div id="deviceCards" class="vehicle-list"></div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Device</th>
+                  <th>Status</th>
+                  <th>Current</th>
+                  <th>Power</th>
+                  <th>Active plate</th>
+                  <th>Assigned plate</th>
+                  <th>Last seen</th>
+                </tr>
+              </thead>
+              <tbody id="deviceTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="span-12 chart-card">
+          <div class="row" style="justify-content: space-between; align-items: center">
+            <div>
+              <h2>Station Current Graph</h2>
+              <p class="subtle">Current history for the selected station, including idle periods.</p>
+            </div>
+            <select id="deviceHistoryFilter"></select>
+          </div>
+          <div id="adminHistoryChart" class="chart-surface"></div>
+        </div>
+
+        <div class="span-12 table-card">
+          <h2>Alert log</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Type</th>
+                  <th>Message</th>
+                  <th>Value</th>
+                </tr>
+              </thead>
+              <tbody id="alertTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
+    <script src="assets/js/api.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/socket.js"></script>
+    <script src="assets/js/admin-dashboard.js"></script>
+  </body>
+</html>

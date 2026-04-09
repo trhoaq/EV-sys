@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Register | IOT 2026 MVP</title>
+    <link rel="stylesheet" href="assets/css/app.css" />
+  </head>
+  <body class="auth-layout">
+    <div class="auth-card">
+      <section class="auth-copy">
+        <div class="eyebrow">User Onboarding</div>
+        <h1>Create a user account for the charging dashboard.</h1>
+        <p>
+          Registration creates a standard user account. Vehicle-to-user assignments remain controlled
+          by the admin panel as planned in the MVP.
+        </p>
+      </section>
+      <section class="auth-form">
+        <h2>Create account</h2>
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" placeholder="user@example.com" />
+        <label for="licensePlate">License plate</label>
+        <input id="licensePlate" name="licensePlate" type="text" placeholder="59A-12345" />
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" placeholder="At least 6 characters" />
+        <p id="message" class="message"></p>
+        <div class="form-actions">
+          <button id="registerButton" type="button">Register</button>
+          <a class="ghost-button" href="login.html">Back to login</a>
+        </div>
+      </section>
+    </div>
+    <script src="assets/js/api.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script>
+      const emailInput = document.getElementById("email");
+      const licensePlateInput = document.getElementById("licensePlate");
+      const passwordInput = document.getElementById("password");
+      const message = document.getElementById("message");
+
+      document.getElementById("registerButton").addEventListener("click", async function () {
+        try {
+          const payload = await window.AppApi.post("/api/auth/register", {
+            email: emailInput.value.trim(),
+            license_plate: licensePlateInput.value.trim().toUpperCase(),
+            password: passwordInput.value,
+          });
+          window.AppAuth.saveSession(payload);
+          message.textContent = "Account created. Redirecting...";
+          message.className = "message success";
+          window.AppAuth.redirectByRole();
+        } catch (error) {
+          message.textContent = error.message;
+          message.className = "message error";
+        }
+      });
+    </script>
+  </body>
+</html>

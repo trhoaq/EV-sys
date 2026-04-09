@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>User Dashboard | IOT 2026 MVP</title>
+    <link rel="stylesheet" href="assets/css/app.css" />
+  </head>
+  <body>
+    <main class="page-shell">
+      <section class="hero-card">
+        <div class="hero-top">
+          <div>
+            <div class="eyebrow">User Dashboard</div>
+            <h1>Your charging data, live and scoped by license plate.</h1>
+            <p id="welcomeMessage">Loading profile...</p>
+          </div>
+          <div class="hero-actions">
+            <button id="refreshButton" type="button">Refresh</button>
+            <button id="logoutButton" class="ghost-button" type="button">Logout</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="dashboard-grid">
+        <div class="span-12 panel">
+          <div class="row" style="justify-content: space-between; align-items: center">
+            <div>
+              <h2>Vehicles</h2>
+              <p class="subtle">Assigned plates and their latest readings.</p>
+            </div>
+            <select id="vehicleFilter"></select>
+          </div>
+          <div id="vehicleCards" class="vehicle-list"></div>
+        </div>
+
+        <div class="span-8 chart-card">
+          <h2>History</h2>
+          <p class="subtle">Last 200 readings for the selected plate.</p>
+          <div id="historyChart" class="chart-surface"></div>
+        </div>
+
+        <div class="span-4 panel">
+          <h2>Realtime Snapshot</h2>
+          <div class="metric-grid" id="snapshotMetrics"></div>
+        </div>
+
+        <div class="span-12 table-card">
+          <div class="row" style="justify-content: space-between; align-items: center">
+            <div>
+              <h2>Alerts</h2>
+              <p class="subtle">Recent alerts generated from threshold rules.</p>
+            </div>
+            <p id="socketStatus" class="status-pill offline">Socket disconnected</p>
+          </div>
+          <div id="alertList" class="alert-list"></div>
+        </div>
+      </section>
+    </main>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
+    <script src="assets/js/api.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/socket.js"></script>
+    <script src="assets/js/user-dashboard.js"></script>
+  </body>
+</html>

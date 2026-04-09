@@ -1,0 +1,15 @@
+.omx/
+.env
+venv/
+__pycache__/
+*.pyc
+backend/*.db
+.venv/
+__pycache__/
+*.pyc
+
+AGENTS.md
+BASIC_DESIGN.md
+
+.omx/
+.codex/
