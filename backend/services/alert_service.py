@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+from statistics import median
 
 from flask import current_app
 from sqlalchemy import inspect, text
@@ -65,24 +66,72 @@ def upsert_system_settings(
     return settings
 
 
+def detect_statistical_current_anomaly(
+    *,
+    current: float,
+    history: list[float],
+    min_samples: int,
+    z_threshold: float,
+    relative_delta_threshold: float,
+) -> dict | None:
+    clean_history = [float(value) for value in history if value is not None]
+    if len(clean_history) < min_samples:
+        return None
+
+    baseline = median(clean_history)
+    deviations = [abs(value - baseline) for value in clean_history]
+    mad = median(deviations)
+
+    if mad > 0:
+        robust_z_score = 0.6745 * abs(current - baseline) / mad
+        if robust_z_score >= z_threshold:
+            return {
+                "basis": "robust_z_score",
+                "score": robust_z_score,
+                "reference_value": baseline,
+                "history_size": len(clean_history),
+            }
+        return None
+
+    relative_delta = abs(current - baseline) / max(abs(baseline), 1.0)
+    if relative_delta >= relative_delta_threshold:
+        return {
+            "basis": "relative_delta",
+            "score": relative_delta,
+            "reference_value": baseline,
+            "history_size": len(clean_history),
+        }
+
+    return None
+
+
+def _threshold_alert_payload(current: float, min_current_ma: float, max_current_ma: float) -> dict | None:
+    if current > max_current_ma:
+        return {
+            "status": "abnormal",
+            "type": "high_current",
+            "message": f"Current above maximum threshold ({current} > {max_current_ma})",
+            "threshold_value": max_current_ma,
+        }
+
+    return None
+
+
 def classify_current(current: float, settings: SystemSetting) -> tuple[str, str | None, str | None, float | None]:
-    if current < settings.min_current_ma:
+    threshold_alert = _threshold_alert_payload(
+        current=current,
+        min_current_ma=settings.min_current_ma,
+        max_current_ma=settings.max_current_ma,
+    )
+    if threshold_alert is not None:
         return (
-            "not_charging",
-            "low_current",
-            f"Current below minimum threshold ({current} < {settings.min_current_ma})",
-            settings.min_current_ma,
+            threshold_alert["status"],
+            threshold_alert["type"],
+            threshold_alert["message"],
+            threshold_alert["threshold_value"],
         )
 
-    if current > settings.max_current_ma:
-        return (
-            "abnormal",
-            "high_current",
-            f"Current above maximum threshold ({current} > {settings.max_current_ma})",
-            settings.max_current_ma,
-        )
-
-    if current < settings.charging_detection_current_ma:
+    if current < max(settings.min_current_ma, settings.charging_detection_current_ma):
         return ("not_charging", None, None, None)
 
     return ("charging", None, None, None)
@@ -118,21 +167,16 @@ def classify_reading(current: float, min_current_ma: float, max_current_ma: floa
 
 
 def build_alert(current: float, min_current_ma: float, max_current_ma: float) -> dict | None:
-    if current < min_current_ma:
-        return {
-            "type": "low_current",
-            "message": f"Current below minimum threshold ({current} < {min_current_ma})",
-            "threshold_value": min_current_ma,
-            "measured_value": current,
-        }
-    if current > max_current_ma:
-        return {
-            "type": "high_current",
-            "message": f"Current above maximum threshold ({current} > {max_current_ma})",
-            "threshold_value": max_current_ma,
-            "measured_value": current,
-        }
-    return None
+    threshold_alert = _threshold_alert_payload(current, min_current_ma, max_current_ma)
+    if threshold_alert is None:
+        return None
+
+    return {
+        "type": threshold_alert["type"],
+        "message": threshold_alert["message"],
+        "threshold_value": threshold_alert["threshold_value"],
+        "measured_value": current,
+    }
 
 
 def derive_device_status(*, device, reading, settings, offline_after_seconds: int) -> str:
@@ -140,10 +184,11 @@ def derive_device_status(*, device, reading, settings, offline_after_seconds: in
         return "offline"
 
     now = datetime.now(timezone.utc)
-    if device.last_seen_at < now - timedelta(seconds=offline_after_seconds):
+    last_seen_at = device.last_seen_at
+    if last_seen_at.tzinfo is None:
+        last_seen_at = last_seen_at.replace(tzinfo=timezone.utc)
+
+    if last_seen_at < now - timedelta(seconds=offline_after_seconds):
         return "offline"
 
-    if reading is None:
-        return device.status or "online"
-
-    return classify_reading(reading.current, settings.min_current_ma, settings.max_current_ma)
+    return device.status or "online"

@@ -22,19 +22,31 @@
         </div>
       </section>
 
-      <section class="dashboard-grid">
-        <div class="span-12 panel">
+      <section id="adminCriticalAlert" class="alert-spotlight hidden" aria-live="assertive"></section>
+      <div id="adminToastStack" class="toast-stack" aria-live="assertive" aria-atomic="true"></div>
+
+      <section class="section-nav" data-section-nav data-panel-scope="#adminPanels [data-panel]">
+        <button type="button" class="section-nav-button" data-nav-target="overview" data-nav-default>Overview</button>
+        <button type="button" class="section-nav-button" data-nav-target="thresholds">Thresholds</button>
+        <button type="button" class="section-nav-button" data-nav-target="assignments">Assignments</button>
+        <button type="button" class="section-nav-button" data-nav-target="devices">Stations</button>
+        <button type="button" class="section-nav-button" data-nav-target="graphs">Graphs</button>
+        <button type="button" class="section-nav-button" data-nav-target="alerts">Alerts</button>
+      </section>
+
+      <section id="adminPanels" class="dashboard-grid">
+        <div class="span-12 panel dashboard-panel" data-panel="overview">
           <h2>Overview</h2>
           <div id="overviewMetrics" class="metric-grid"></div>
         </div>
 
-        <div class="span-6 panel">
+        <div class="span-12 panel dashboard-panel" data-panel="thresholds">
           <h2>Global Thresholds</h2>
-          <label for="minCurrent">Minimum current (mA)</label>
+          <label for="minCurrent">Minimum current (A)</label>
           <input id="minCurrent" type="number" />
-          <label for="detectionCurrent">Charging detection current (mA)</label>
+          <label for="detectionCurrent">Charging detection current (A)</label>
           <input id="detectionCurrent" type="number" />
-          <label for="maxCurrent">Maximum current (mA)</label>
+          <label for="maxCurrent">Maximum current (A)</label>
           <input id="maxCurrent" type="number" />
           <p id="settingsMessage" class="message"></p>
           <div class="form-actions">
@@ -42,7 +54,7 @@
           </div>
         </div>
 
-        <div class="span-6 panel">
+        <div class="span-12 panel dashboard-panel" data-panel="assignments">
           <h2>Assign plate to user</h2>
           <label for="assignmentUser">User</label>
           <select id="assignmentUser"></select>
@@ -58,7 +70,7 @@
           </div>
         </div>
 
-        <div class="span-12 table-card">
+        <div class="span-12 table-card dashboard-panel" data-panel="devices">
           <div class="row" style="justify-content: space-between; align-items: center">
             <div>
               <h2>Devices</h2>
@@ -85,18 +97,13 @@
           </div>
         </div>
 
-        <div class="span-12 chart-card">
-          <div class="row" style="justify-content: space-between; align-items: center">
-            <div>
-              <h2>Station Current Graph</h2>
-              <p class="subtle">Current history for the selected station, including idle periods.</p>
-            </div>
-            <select id="deviceHistoryFilter"></select>
-          </div>
-          <div id="adminHistoryChart" class="chart-surface"></div>
+        <div class="span-12 chart-card dashboard-panel" data-panel="graphs">
+          <h2>Station Graphs</h2>
+          <p class="subtle">Each station shows current and voltage with minute-based axes and grid lines.</p>
+          <div id="stationCharts" class="station-chart-list"></div>
         </div>
 
-        <div class="span-12 table-card">
+        <div class="span-12 table-card dashboard-panel" data-panel="alerts">
           <h2>Alert log</h2>
           <div class="table-wrap">
             <table>
@@ -117,6 +124,7 @@
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
     <script src="assets/js/api.js"></script>
     <script src="assets/js/auth.js"></script>
+    <script src="assets/js/nav.js"></script>
     <script src="assets/js/socket.js"></script>
     <script src="assets/js/admin-dashboard.js"></script>
   </body>

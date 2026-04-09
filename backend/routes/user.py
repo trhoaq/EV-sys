@@ -6,7 +6,7 @@ from flask import Blueprint, current_app, jsonify, request
 from flask_jwt_extended import get_jwt, get_jwt_identity, jwt_required
 
 from backend.extensions import db
-from backend.models import Alert, SensorData, SystemSettings, User, Vehicle
+from backend.models import Alert, ChargingSession, SensorData, SystemSettings, User, Vehicle
 from backend.services.alert_service import derive_device_status
 
 user_bp = Blueprint("user", __name__)
@@ -138,3 +138,21 @@ def alerts():
 
     items = query.limit(limit).all()
     return jsonify({"items": [alert.to_dict() for alert in items]})
+
+
+@user_bp.get("/payment-history")
+@jwt_required()
+def payment_history():
+    limit = min(int(request.args.get("limit", 50)), 200)
+    query = ChargingSession.query.filter(ChargingSession.status == "completed").order_by(ChargingSession.ended_at.desc())
+
+    if get_jwt().get("role") != "admin":
+        user = _current_user()
+        vehicle_ids = [vehicle.id for vehicle in user.vehicles]
+        if vehicle_ids:
+            query = query.filter(ChargingSession.vehicle_id.in_(vehicle_ids))
+        else:
+            query = query.filter(ChargingSession.id == -1)
+
+    items = query.limit(limit).all()
+    return jsonify({"items": [session.to_dict() for session in items]})

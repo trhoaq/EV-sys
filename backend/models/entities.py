@@ -162,6 +162,51 @@ class Alert(db.Model):
         }
 
 
+class ChargingSession(db.Model):
+    __tablename__ = "charging_sessions"
+
+    id = db.Column(db.Integer, primary_key=True)
+    device_id = db.Column(db.Integer, db.ForeignKey("devices.id"), nullable=False, index=True)
+    vehicle_id = db.Column(db.Integer, db.ForeignKey("vehicles.id"), nullable=False, index=True)
+    status = db.Column(db.String(32), nullable=False, default="active", index=True)
+    started_at = db.Column(db.DateTime(timezone=True), nullable=False)
+    ended_at = db.Column(db.DateTime(timezone=True), nullable=True)
+    last_sample_at = db.Column(db.DateTime(timezone=True), nullable=False)
+    last_power_w = db.Column(db.Float, nullable=False, default=0.0)
+    reading_count = db.Column(db.Integer, nullable=False, default=1)
+    energy_kwh = db.Column(db.Float, nullable=False, default=0.0)
+    rate_vnd_per_kwh = db.Column(db.Integer, nullable=False, default=2500)
+    total_vnd = db.Column(db.Integer, nullable=False, default=0)
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
+    updated_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow)
+
+    device = db.relationship("Device", lazy="joined")
+    vehicle = db.relationship("Vehicle", lazy="joined")
+
+    def to_dict(self) -> dict:
+        duration_minutes = None
+        if self.ended_at is not None:
+            start = self.started_at if self.started_at.tzinfo is not None else self.started_at.replace(tzinfo=timezone.utc)
+            end = self.ended_at if self.ended_at.tzinfo is not None else self.ended_at.replace(tzinfo=timezone.utc)
+            duration_minutes = round((end - start).total_seconds() / 60, 2)
+
+        return {
+            "id": self.id,
+            "device_id": self.device_id,
+            "vehicle_id": self.vehicle_id,
+            "status": self.status,
+            "started_at": self.started_at.isoformat() if self.started_at else None,
+            "ended_at": self.ended_at.isoformat() if self.ended_at else None,
+            "reading_count": self.reading_count,
+            "energy_kwh": round(self.energy_kwh, 6),
+            "rate_vnd_per_kwh": self.rate_vnd_per_kwh,
+            "total_vnd": self.total_vnd,
+            "duration_minutes": duration_minutes,
+            "device_code": self.device.device_code if self.device else None,
+            "license_plate": self.vehicle.license_plate if self.vehicle else None,
+        }
+
+
 class SystemSetting(db.Model):
     __tablename__ = "system_settings"
 

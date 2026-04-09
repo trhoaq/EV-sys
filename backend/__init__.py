@@ -121,17 +121,17 @@ def register_cli(app: Flask) -> None:
     def seed_dev_command() -> None:
         fixtures = [
             ("admin@example.com", "Admin@123", "admin", []),
-            ("user1@example.com", "Password1", "user", ["59A-12345"]),
-            ("user2@example.com", "Password1", "user", ["51B-67890"]),
+            ("user1@example.com", "123456", "user", ["59A-12345"]),
+            ("user2@example.com", "123456", "user", ["51B-67890"]),
         ]
 
         for email, password, role, plates in fixtures:
             user = User.query.filter_by(email=email).first()
             if user is None:
                 user = User(email=email, role=role)
-                user.set_password(password)
                 db.session.add(user)
                 db.session.flush()
+            user.set_password(password)
 
             for plate in plates:
                 existing_vehicle = Vehicle.query.filter_by(license_plate=plate).first()

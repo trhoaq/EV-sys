@@ -22,8 +22,20 @@
         </div>
       </section>
 
-      <section class="dashboard-grid">
-        <div class="span-12 panel">
+      <section id="userCriticalAlert" class="alert-spotlight hidden" aria-live="assertive"></section>
+      <div id="userToastStack" class="toast-stack" aria-live="assertive" aria-atomic="true"></div>
+
+      <section class="section-nav" data-section-nav data-panel-scope="#userPanels [data-panel]">
+        <button type="button" class="section-nav-button" data-nav-target="vehicles" data-nav-default>Vehicles</button>
+        <button type="button" class="section-nav-button" data-nav-target="history">History Graphs</button>
+        <button type="button" class="section-nav-button" data-nav-target="payments">Payment History</button>
+        <button type="button" class="section-nav-button" data-nav-target="snapshot">Realtime Snapshot</button>
+        <button type="button" class="section-nav-button" data-nav-target="alerts">Alerts</button>
+        <button type="button" class="section-nav-button" data-nav-target="sponsor">Tips / Sponsor</button>
+      </section>
+
+      <section id="userPanels" class="dashboard-grid">
+        <div class="span-12 panel dashboard-panel" data-panel="vehicles">
           <div class="row" style="justify-content: space-between; align-items: center">
             <div>
               <h2>Vehicles</h2>
@@ -34,18 +46,39 @@
           <div id="vehicleCards" class="vehicle-list"></div>
         </div>
 
-        <div class="span-8 chart-card">
-          <h2>History</h2>
-          <p class="subtle">Last 200 readings for the selected plate.</p>
-          <div id="historyChart" class="chart-surface"></div>
+        <div class="span-12 chart-card dashboard-panel" data-panel="history">
+          <h2>History Graphs</h2>
+          <p class="subtle">Current and voltage history for the selected plate, shown by minute.</p>
+          <div id="userHistoryCharts" class="station-chart-grid"></div>
         </div>
 
-        <div class="span-4 panel">
+        <div class="span-12 panel dashboard-panel" data-panel="snapshot">
           <h2>Realtime Snapshot</h2>
           <div class="metric-grid" id="snapshotMetrics"></div>
         </div>
 
-        <div class="span-12 table-card">
+        <div class="span-12 table-card dashboard-panel" data-panel="payments">
+          <h2>Payment History</h2>
+          <p class="subtle">Completed charging sessions with energy usage and total cost.</p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Plate</th>
+                  <th>Device</th>
+                  <th>Start</th>
+                  <th>End</th>
+                  <th>Duration</th>
+                  <th>Energy</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody id="paymentHistoryBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="span-12 table-card dashboard-panel" data-panel="alerts">
           <div class="row" style="justify-content: space-between; align-items: center">
             <div>
               <h2>Alerts</h2>
@@ -55,11 +88,30 @@
           </div>
           <div id="alertList" class="alert-list"></div>
         </div>
+
+        <div class="span-12 panel dashboard-panel" data-panel="sponsor">
+          <div class="sponsor-shell">
+            <div class="sponsor-copy">
+              <h2>Tips / Sponsor</h2>
+              <p class="subtle">
+                If this charging dashboard helps you, you can support the project by scanning the QR code below.
+              </p>
+              <div class="sponsor-points">
+                <span class="chart-summary-item"><strong>Method:</strong> QR transfer</span>
+                <span class="chart-summary-item"><strong>Use:</strong> support hosting and development</span>
+              </div>
+            </div>
+            <div class="sponsor-qr-card">
+              <img src="assets/image/qr.png" alt="Sponsor QR code" class="sponsor-qr-image" />
+            </div>
+          </div>
+        </div>
       </section>
     </main>
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
     <script src="assets/js/api.js"></script>
     <script src="assets/js/auth.js"></script>
+    <script src="assets/js/nav.js"></script>
     <script src="assets/js/socket.js"></script>
     <script src="assets/js/user-dashboard.js"></script>
   </body>

@@ -1,5 +1,10 @@
+from datetime import datetime, timedelta, timezone
+
+from backend.models import ChargingSession
 from backend.services.alert_service import upsert_system_settings
+from backend.services.fake_db_seed_service import load_fake_payloads_to_db
 from backend.services.ingest_service import ingest_sensor_payload
+from backend.services.fake_session_service import generate_fake_payload_fleet
 
 
 def test_user_cannot_view_history_for_other_plate(client, user1_token):
@@ -101,3 +106,61 @@ def test_admin_can_view_device_history_without_active_plate(app, client, admin_t
     assert len(items) == 1
     assert items[0]["device_code"] == "charger-02"
     assert items[0]["license_plate"] is None
+
+
+def test_admin_devices_keeps_statistical_anomaly_status(app, client, admin_token):
+    with app.app_context():
+        base_time = datetime.now(timezone.utc).replace(second=0, microsecond=0) - timedelta(minutes=8)
+        for offset, current_value in enumerate([118, 121, 119, 120, 122, 117, 118, 121], start=1):
+            ingest_sensor_payload(
+                {
+                    "device_id": "charger-06",
+                    "bien_so_xe": "59A-12345",
+                    "current": current_value,
+                    "voltage": 220,
+                    "power": current_value * 220,
+                    "timestamp": (base_time + timedelta(minutes=offset - 1)).isoformat().replace("+00:00", "Z"),
+                },
+                use_payload_timestamp=True,
+            )
+
+        ingest_sensor_payload(
+            {
+                "device_id": "charger-06",
+                "bien_so_xe": "59A-12345",
+                "current": 190,
+                "voltage": 220,
+                "power": 41800,
+                "timestamp": (base_time + timedelta(minutes=8)).isoformat().replace("+00:00", "Z"),
+            },
+            use_payload_timestamp=True,
+        )
+
+    response = client.get(
+        "/api/admin/devices",
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+
+    assert response.status_code == 200
+    charger = next(item for item in response.get_json()["items"] if item["device_code"] == "charger-06")
+    assert charger["status"] == "abnormal"
+
+
+def test_user_can_view_payment_history_for_completed_sessions(app, client, user1_token):
+    with app.app_context():
+        upsert_system_settings(8.0, 18.0, None, charging_detection_current_ma=8.5)
+        payloads = generate_fake_payload_fleet(duration_minutes=30, seed=20260410)
+        load_fake_payloads_to_db(payloads=payloads, write_preview_file=False)
+        sessions = ChargingSession.query.filter(ChargingSession.status == "completed").all()
+        assert sessions
+
+    response = client.get(
+        "/api/user/payment-history",
+        headers={"Authorization": f"Bearer {user1_token}"},
+    )
+
+    assert response.status_code == 200
+    items = response.get_json()["items"]
+    assert items
+    assert all(item["license_plate"] == "59A-12345" for item in items)
+    assert all(item["total_vnd"] >= 0 for item in items)

@@ -30,9 +30,9 @@ def app(tmp_path: Path):
         admin = User(email="admin@example.com", role="admin")
         admin.set_password("Admin@123")
         user1 = User(email="user1@example.com", role="user")
-        user1.set_password("Password1")
+        user1.set_password("123456")
         user2 = User(email="user2@example.com", role="user")
-        user2.set_password("Password1")
+        user2.set_password("123456")
         db.session.add_all([admin, user1, user2])
         db.session.flush()
 
@@ -61,8 +61,8 @@ def auth_tokens(client):
 
     return {
         "admin": _login("admin@example.com", "Admin@123"),
-        "user1": _login("user1@example.com", "Password1"),
-        "user2": _login("user2@example.com", "Password1"),
+        "user1": _login("user1@example.com", "123456"),
+        "user2": _login("user2@example.com", "123456"),
     }
 
 

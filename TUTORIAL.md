@@ -107,8 +107,8 @@ Seeded development users and vehicles.
 Sau `seed-dev`, he thong co san:
 
 - admin: `admin@example.com` / `Admin@123`
-- user 1: `user1@example.com` / `Password1`
-- user 2: `user2@example.com` / `Password1`
+- user 1: `user1@example.com` / `123456`
+- user 2: `user2@example.com` / `123456`
 
 Va 2 bien so:
 
@@ -194,7 +194,7 @@ Tai day ban co the:
 Dang xuat admin, roi dang nhap:
 
 - Email: `user1@example.com`
-- Password: `Password1`
+- Password: `123456`
 
 Ban se duoc dua toi dashboard user.
 
@@ -203,6 +203,8 @@ Tai day ban co the:
 - xem du lieu cua bien so duoc gan
 - xem history
 - xem alert
+- xem `Payment History`
+- xem tab `Tips / Sponsor` voi anh QR
 
 ## 10. Gui MQTT test
 
@@ -257,9 +259,10 @@ mosquitto_pub -h 127.0.0.1 -p 1883 -t ev/charger/telemetry -m "{\"device_id\":\"
 
 Ket qua mong doi:
 
-- sinh alert `low_current`
-- user dashboard thay alert moi
-- admin dashboard thay alert log moi
+- khong tao alert
+- device o trang thai `not_charging`
+- user dashboard khong co alert moi tu mau nay
+- admin dashboard khong co alert log moi tu mau nay
 
 ### 11.2 Alert current cao
 
@@ -321,6 +324,84 @@ node --check interface\assets\js\auth.js
 node --check interface\assets\js\socket.js
 node --check interface\assets\js\user-dashboard.js
 node --check interface\assets\js\admin-dashboard.js
+```
+
+## 14.1 Tao du lieu gia 2 gio de test detector
+
+Generator co san trong repo se tao 1 phien sac gia:
+
+- `9-12A`
+- `23-25.5V`
+- keo dai khoang `120 phut`
+- chen san mot vai diem outlier de test anomaly detection
+
+Ghi ra file:
+
+```powershell
+.\.venv\Scripts\python -m backend.scripts.generate_fake_charging_session
+```
+
+Mac dinh lenh nay sinh bo du lieu cho nhieu thiet bi va 2 bien so:
+
+- devices: `esp32s3_01`, `esp32s3_02`, `esp32s3_03`, `esp32s3_04`
+- plates: `59A-12345`, `51B-67890`
+
+Publish truc tiep len broker:
+
+```powershell
+.\.venv\Scripts\python -m backend.scripts.generate_fake_charging_session --publish --topic ina219/data
+```
+
+Mac dinh moi lan generate se dung seed random khac nhau.
+Neu muon lap lai dung cung bo data:
+
+```powershell
+.\.venv\Scripts\python -m backend.scripts.generate_fake_charging_session --seed 20260410
+```
+
+Neu muon generate 1 thiet bi duy nhat:
+
+```powershell
+.\.venv\Scripts\python -m backend.scripts.generate_fake_charging_session --single-device --device-code esp32s3_01 --license-plate 59A-12345
+```
+
+Neu ban muon detector thong ke co dat ngưong phu hop voi don vi `A`, hay dat settings admin xap xi:
+
+- `Minimum current = 8.0`
+- `Charging detection current = 8.5`
+- `Maximum current = 18.0`
+
+## 14.2 Nap fake payload truc tiep vao database
+
+Neu ban muon fake payload duoc xem nhu data that trong dashboard, history, graph, va alert,
+hay nap thang vao database:
+
+```powershell
+.\.venv\Scripts\python -m backend.scripts.load_fake_payloads_to_db
+```
+
+Lenh nay se:
+
+- dam bao `user1@example.com` / `123456`
+- dam bao `user2@example.com` / `123456`
+- dam bao 2 bien so:
+  - `59A-12345`
+  - `51B-67890`
+- tao du lieu cho 4 thiet bi
+- chen lich su 2 gio vao database voi timestamp lich su da generate
+
+Sau do:
+
+1. Dang nhap `user1@example.com` / `123456`
+2. Xem dashboard, history graph, payment history, alert nhu data that
+3. Dang nhap `user2@example.com` / `123456`
+4. Xem du lieu va payment history cho bien so cua user 2
+5. Dang nhap admin va vao `Stations`, `Graphs`, `Alerts`
+
+Neu muon nap 1 thiet bi duy nhat:
+
+```powershell
+.\.venv\Scripts\python -m backend.scripts.load_fake_payloads_to_db --single-device --device-code esp32s3_01 --license-plate 59A-12345
 ```
 
 ## 15. Checklist demo end-to-end
